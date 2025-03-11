@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link rel="stylesheet" href="css/style.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+        }
+
+        #opening {
+            position: fixed;
+            width: 100%;
+            height: 110%;
+            background-color: rgb(0, 0, 0);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: rgb(0, 0, 0);
+            font-size: 2rem;
+            z-index: 1;
+        }
+
+        
+    </style>
+</head>
+<body>
+
+    <div id="opening" >
+        <video src="a4.mp4" autoplay muted playsinline></video>　
+    </div>
+    
+    <script>
+        anime.timeline({
+            easing: 'easeOutExpo',
+            duration: 1000
+        })
+        .add({
+            targets: '#opening',
+            opacity: [1, 0],
+            translateY: [-50, 0],
+            delay:7600 // 7600 seconds wait
+        })
+        .add({
+            targets: '#opening',
+            duration: 500,
+            complete: function() {
+                // Hide the opening div and allow scrolling again
+                document.getElementById('opening').style.display = 'none';
+                document.body.style.overflow = 'visible'; // Re-enable scrolling
+            }
+        });
+    </script>
+
+
+
+    <div><center>
+<img class="head" src="S1.jpg">
+ </center></div>
+
+    
+    <h1 class="title">PURIN SHAPPPPE</h1>
+
+        <div class="first">
+        <p>ワンオフ作成</p>
+    <p>社外テールランプのワンオフ制作を行います。</p>
+    <p>＊オーダーフォーム＊</p>
+    </div>
+
+    
+<section>
+    <p id="hissu">＊必須
+    <label id="mane">お名前：
+        <input type="text" name="name" id="customername"/>
+    </label>
+    </p>
+
+    <div>↓連絡用の為どちらかご記入ください。</div>
+
+    <div>
+    <label >E-mail：
+        <input type="email" name="name" id="customermail"/>
+    </label>
+</div>
+
+    <div>
+    <label >Instagram ID：
+        <input type="text" name="name" id="customerID"/>
+    </label>
+    </div>
+
+</section>
+
+<optionchoice>
+    <h2>オプション一覧</h2>
+    <p>ご希望のオプションに✓マークを付けてください。</p>
+        <p>↓タップすると展開します</p>
+        <div class="one">
+        <details>
+            <summary>ウィンカーカスタム　　速度自由に変更可</summary>
+            <p><input type="checkbox" name="type" value="シーケンシャルウィンカー">シーケンシャルウィンカー <img class="win" src="win2.gif"></img></p>
+            <p><input type="checkbox" name="type" value="追っかけシーケンシャルウィンカー">追っかけシーケンシャルウィンカー<img class="win" src="win1.gif" ></img></p>
+            <p><input type="checkbox" name="type" value="逆シーケンシャル">逆シーケンシャル <img class="win" src="win5.gif"></img></p>
+            <p><input type="checkbox" name="type" value="ディミングターンシグナル">ディミングターンシグナル <img class="win" src="win3.gif"></img></p>
+            <p><input type="checkbox" name="type" value="ハロゲン風点滅">ハロゲン風点滅 <img class="win" src="win4.gif"></img></p>
+            </details>
+        </div>
+        <p><input type="checkbox" name="type" value="ウィンカーランダム点灯">ウィンカーランダム点灯</p>
+        <p><input type="checkbox" name="type" value="ウィンカー切り替え機能">スイッチでウィンカー切り替え機能</p>
+        <p><input type="checkbox" name="type" value="ロックオフでオープニング">ロックオフでオープニング</p>
+        <p><input type="checkbox" name="type" value="ロックオンでエンディング">ロックオンでエンディング</p>
+        <p><input type="checkbox" name="type" value="ポジションオンでオープニング">ポジションオンでオープニング</p>
+        <p><input type="checkbox" name="type" value="142パターン流れるRGBスマホ操作可能">142パターン流れるRGBスマホ操作可能</p>
+        <p><input type="checkbox" name="type" value="レインボー点灯">レインボー点灯</p>
+        <p><input type="checkbox" name="type" value="７色ループ">７色ループ</p>
+        <p><input type="checkbox" name="type" value="ブレーキ時高速点滅(回数や速度指定可能)">ブレーキ時高速点滅(回数や速度指定可能)</p>
+        <p><input type="checkbox" name="type" value="USレッドウィンカー">USレッドウィンカー</p>
+        
+        <p>↓タップすると展開します</p>
+    <div class="two">
+        <details >
+            <summary>サイドマーカー発光選択</summary>
+            <p><input type="checkbox" name="type" value="ホタル発光">ホタル発光</p>
+            <p><input type="checkbox" name="type" value="ストロボ">ストロボ</p>
+    </details>
+    </div>
+        <p><input type="checkbox" name="type" value="ブレーキで全点灯">ブレーキで全点灯</p>
+</optionchoice>
+
+        <center><label >
+            <p>そのほかご希望の加工や要望をお書きください。</p>
+            <textarea name="comment"cols="46"rows="5">⇒</textarea >
+        </label>
+    </div>
+<h3>オプション選択完了後に送信ボタンを押してください。</h3>
+<button>送信</button></center>
+</body>
+</html>
