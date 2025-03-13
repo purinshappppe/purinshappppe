@@ -72,21 +72,6 @@ img.win{
     height: 60px;
 }
 
-/* Make the button bigger and centered */
-button {
-    font-size: 20px;
-    padding: 10px 20px;
-    border: 2px solid #333;
-    border-radius: 30px;
-    background-color: #0800ff; /* Pink background color */
-    color: white;
-    cursor: pointer;
-    outline: none;
-    position: relative;
-    overflow: hidden;
-    transition: background-color 0.3s ease;
-    animation: jelly 1.5s infinite; /* Apply the jelly animation */
-}
 
 /* Jelly-like animation using keyframes */
 @keyframes jelly {
@@ -119,13 +104,26 @@ label{
     right: -42px;
 }
 
-button{
+input[type="submit"] {
     width: 170px;
     height: 60px;
     display: block;
     position: relative;
     right: -50px;
     bottom: -13px;
+
+    font-size: 20px;
+    padding: 10px 20px;
+    border: 2px solid #333;
+    border-radius: 30px;
+    background-color: #0800ff; /* Pink background color */
+    color: white;
+    cursor: pointer;
+    outline: none;
+    position: relative;
+    overflow: hidden;
+    transition: background-color 0.3s ease;
+    animation: jelly 1.5s infinite; /* Apply the jelly animation */
 }
 
 
