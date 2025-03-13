@@ -81,15 +81,7 @@ label#mane{
     bottom: -3px; 
 }
 
-.file{
-    display: block;
-    font:
-    1rem "Fira Sans",
-    sans-serif;
-    position: relative;
-    right: -59px;
-    bottom: -23px; 
-}
+
 
 optionchoice{
     h2{
