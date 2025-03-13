@@ -43,7 +43,7 @@
             targets: '#opening',
             opacity: [1, 0],
             translateY: [-50, 0],
-            delay:7600 // 7600 seconds wait
+            delay:6700 // 7600 seconds wait
         })
         .add({
             targets: '#opening',
@@ -88,18 +88,30 @@
     <div>↓連絡用の為どちらかご記入ください。</div>
 
     <div>
-    <label >E-mail：
+    <label class="mail">E-mail：
         <input type="email" name="email" id="customermail"/>
     </label>
 </div>
 
     <div>
-    <label >Instagram ID：
+    <label class="insta">Instagram ID：
         <input type="text" name="Instagram ID" id="customerID"/>
     </label>
     </div>
 
 </section>
+
+<div>
+    <label class="car">車種：
+        <input type="text" name="car" id="customerID"/>
+    </label>
+</div>
+
+<div>
+<label class="file">希望されるテールランプの画像を添付してください。
+<input type="file" id="avatar" name="avatar" accept="image/png, image/jpeg" />
+</label>
+</div>
 
 <optionchoice>
     <h2>オプション一覧</h2>
@@ -125,7 +137,8 @@
         <p><input type="checkbox" name="type" value="７色ループ">７色ループ</p>
         <p><input type="checkbox" name="type" value="ブレーキ時高速点滅(回数や速度指定可能)">ブレーキ時高速点滅(回数や速度指定可能)</p>
         <p><input type="checkbox" name="type" value="USレッドウィンカー">USレッドウィンカー</p>
-        
+        <p><input type="checkbox" name="type" value="ブレーキで全点灯">ブレーキで全点灯</p>
+
         <p>↓タップすると展開します</p>
     <div class="two">
         <details >
@@ -134,7 +147,7 @@
             <p><input type="checkbox" name="type" value="ストロボ">ストロボ</p>
     </details>
     </div>
-        <p><input type="checkbox" name="type" value="ブレーキで全点灯">ブレーキで全点灯</p>
+        
 </optionchoice>
 
         <center><label >
