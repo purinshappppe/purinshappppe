@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>リコピンへ♡</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: "Hiragino Kaku Gothic ProN", "Yu Gothic", sans-serif;
+      background: linear-gradient(135deg, #ffeef5, #fff8fb);
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      overflow-x: hidden;
+      padding: 40px 20px;
+    }
+
+    .container {
+      width: min(900px, 92%);
+      padding: 45px 30px 55px;
+      text-align: center;
+      background: rgba(255, 255, 255, 0.8);
+      border-radius: 35px;
+      box-shadow: 0 15px 50px rgba(220, 130, 160, 0.18);
+      border: 2px solid #ffd6e3;
+      position: relative;
+    }
+
+    /* ハート */
+    .heart {
+      position: absolute;
+      font-size: 35px;
+      color: #f09ab5;
+      animation: float 3s ease-in-out infinite;
+    }
+
+    .heart1 {
+      top: 25px;
+      left: 45px;
+    }
+
+    .heart2 {
+      top: 45px;
+      right: 50px;
+      animation-delay: 0.8s;
+    }
+
+    .heart3 {
+      bottom: 30px;
+      left: 70px;
+      animation-delay: 1.4s;
+    }
+
+    .heart4 {
+      bottom: 45px;
+      right: 70px;
+      animation-delay: 2s;
+    }
+
+    @keyframes float {
+      0%, 100% {
+        transform: translateY(0) rotate(-5deg);
+      }
+
+      50% {
+        transform: translateY(-12px) rotate(5deg);
+      }
+    }
+
+    /* タイトル */
+    .small-title {
+      color: #d98aa5;
+      font-size: 18px;
+      letter-spacing: 5px;
+      margin-bottom: 10px;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(45px, 8vw, 80px);
+      color: #d95b83;
+      letter-spacing: 3px;
+      text-shadow: 3px 4px 0 #ffe0ea;
+    }
+
+    .subtitle {
+      margin: 15px 0 30px;
+      color: #9d6879;
+      font-size: 18px;
+    }
+
+    /* 写真 */
+    .photo-area {
+      width: min(600px, 100%);
+      margin: auto;
+    }
+
+    .photo-frame {
+      width: 100%;
+      aspect-ratio: 16 / 10;
+      border-radius: 25px;
+      border: 4px dashed #f3a9bf;
+      background: #fff4f8;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      overflow: hidden;
+      position: relative;
+      box-shadow: 0 10px 30px rgba(220, 130, 160, 0.15);
+    }
+
+    #preview {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    /* メッセージ */
+    .message {
+      margin-top: 30px;
+      color: #b06c82;
+      font-size: 17px;
+      line-height: 1.8;
+    }
+
+    .love {
+      margin-top: 18px;
+      font-size: 28px;
+      color: #e8799b;
+      letter-spacing: 8px;
+    }
+
+    /* ダウンロードエリア */
+    .download-area {
+      margin-top: 70px;
+      padding-top: 45px;
+      border-top: 2px dashed #f3c1d0;
+    }
+
+    .download-title {
+      color: #d95b83;
+      font-size: 25px;
+      font-weight: bold;
+      margin-bottom: 10px;
+    }
+
+    .download-text {
+      color: #a76d80;
+      font-size: 15px;
+      margin-bottom: 25px;
+    }
+
+    /* ダウンロードボタン */
+    .download-button {
+      display: inline-block;
+      padding: 16px 35px;
+      border-radius: 999px;
+      background: linear-gradient(135deg, #ed8eae, #d9658d);
+      color: white;
+      font-size: 17px;
+      font-weight: bold;
+      text-decoration: none;
+      box-shadow: 0 10px 25px rgba(210, 100, 140, 0.3);
+      transition: 0.25s;
+    }
+
+    .download-button:hover {
+      transform: translateY(-4px) scale(1.02);
+      box-shadow: 0 14px 30px rgba(210, 100, 140, 0.4);
+    }
+
+    .download-button:active {
+      transform: scale(0.97);
+    }
+
+    /* 下に誘導 */
+    .scroll-text {
+      margin-top: 45px;
+      color: #d99aad;
+      font-size: 13px;
+      animation: bounce 2s infinite;
+    }
+
+    @keyframes bounce {
+      0%, 100% {
+        transform: translateY(0);
+      }
+
+      50% {
+        transform: translateY(7px);
+      }
+    }
+
+    /* スマホ */
+    @media (max-width: 600px) {
+
+      body {
+        padding: 20px 10px;
+      }
+
+      .container {
+        width: 100%;
+        padding: 35px 18px 45px;
+        border-radius: 28px;
+      }
+
+      .small-title {
+        font-size: 14px;
+        letter-spacing: 4px;
+      }
+
+      h1 {
+        font-size: 50px;
+      }
+
+      .subtitle {
+        font-size: 15px;
+      }
+
+      .photo-frame {
+        aspect-ratio: 4 / 3;
+        border-radius: 20px;
+      }
+
+      .message {
+        font-size: 15px;
+      }
+
+      .download-area {
+        margin-top: 55px;
+        padding-top: 35px;
+      }
+
+      .download-title {
+        font-size: 21px;
+      }
+
+      .download-button {
+        padding: 15px 28px;
+        font-size: 16px;
+      }
+
+      .heart {
+        font-size: 25px;
+      }
+
+      .heart1 {
+        left: 20px;
+      }
+
+      .heart2 {
+        right: 20px;
+      }
+
+      .heart3 {
+        left: 30px;
+      }
+
+      .heart4 {
+        right: 30px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="container">
+
+    <!-- ハート -->
+    <div class="heart heart1">♡</div>
+    <div class="heart heart2">♡</div>
+    <div class="heart heart3">♡</div>
+    <div class="heart heart4">♡</div>
+
+    <!-- タイトル -->
+    <div class="small-title">
+      FOR RIKO
+    </div>
+
+    <h1>リコピン</h1>
+
+    <div class="subtitle">
+      大切なリコへ
+    </div>
+
+    <!-- 写真 -->
+    <div class="photo-area">
+
+      <div class="photo-frame">
+
+        <img
+          id="preview"
+          src="riko.jpg"
+          alt="リコの写真"
+        >
+
+      </div>
+
+    </div>
+
+    <!-- メッセージ -->
+    <div class="message">
+      大変なことやること多いと思うけど<br>
+      いつも本気で応援してるにゃ♡<br>
+      大好きだよん
+    </div>
+
+    <div class="love">
+      ♡　♡　♡
+    </div>
+
+
+    <!-- マッサージ券 -->
+    <div class="download-area">
+
+      <div class="download-title">
+        🎀 リコピンへプレゼント 🎀
+      </div>
+
+      <div class="download-text">
+        下まで見てくれてありがとう♡<br>
+        マッサージ券をプレゼントします
+      </div>
+
+      <a
+        class="download-button"
+        href="https://raw.githubusercontent.com/purinshappppe/purinshappppe/refs/heads/main/e85dd2af-abed-4dbb-943e-196c090474a3.png"
+        download="リコピン_全身マッサージ券.png"
+      >
+        💆🏻‍♀️ マッサージ券をダウンロード ♡
+      </a>
+
+      <div class="scroll-text">
+        ↓ 押してプレゼントを受け取ってね ↓
+      </div>
+
+    </div>
+
+  </div>
+
+</body>
+</html>
