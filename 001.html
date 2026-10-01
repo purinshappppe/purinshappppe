@@ -1,0 +1,655 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Happy Birthday ♡</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        html,
+        body {
+            margin: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+
+            font-family:
+                "Hiragino Kaku Gothic ProN",
+                "Yu Gothic",
+                sans-serif;
+
+            background: #0b0710;
+            color: white;
+        }
+
+
+        /* =========================
+           ステージ
+        ========================= */
+
+        .stage {
+            position: fixed;
+
+            inset: 0;
+
+            overflow: hidden;
+
+            display: flex;
+            justify-content: center;
+            align-items: center;
+
+            background:
+                radial-gradient(
+                    circle at 50% 45%,
+                    #4a1b42 0%,
+                    #1d0d25 45%,
+                    #08060c 100%
+                );
+
+            transition:
+                background 1s ease;
+        }
+
+
+        /* =========================
+           星
+        ========================= */
+
+        .stars {
+            position: absolute;
+            inset: 0;
+
+            pointer-events: none;
+        }
+
+        .star {
+            position: absolute;
+
+            width: 4px;
+            height: 4px;
+
+            border-radius: 50%;
+
+            background: white;
+
+            box-shadow:
+                0 0 8px white,
+                0 0 20px #ff9fd5;
+
+            animation: twinkle 2s infinite ease-in-out;
+        }
+
+        @keyframes twinkle {
+
+            0%,
+            100% {
+                opacity: 0.2;
+                transform: scale(0.7);
+            }
+
+            50% {
+                opacity: 1;
+                transform: scale(1.4);
+            }
+
+        }
+
+
+        /* =========================
+           メッセージ
+        ========================= */
+
+        .message {
+            position: absolute;
+
+            width: 100%;
+
+            padding: 30px;
+
+            text-align: center;
+
+            opacity: 0;
+
+            transform:
+                translateY(100px)
+                scale(0.95);
+
+            filter: blur(10px);
+
+            pointer-events: none;
+
+            transition:
+                opacity 0.7s ease,
+                transform 0.8s cubic-bezier(.22,1,.36,1),
+                filter 0.7s ease;
+        }
+
+
+        .message.active {
+
+            opacity: 1;
+
+            transform:
+                translateY(0)
+                scale(1);
+
+            filter: blur(0);
+
+        }
+
+
+        .message h1 {
+
+            margin: 0;
+
+            font-size:
+                clamp(30px, 8vw, 65px);
+
+            line-height: 1.45;
+
+            letter-spacing: 0.06em;
+
+            text-shadow:
+                0 0 10px rgba(255, 190, 230, .9),
+                0 0 30px rgba(255, 80, 180, .5),
+                0 0 60px rgba(255, 80, 180, .2);
+
+        }
+
+
+        .message p {
+
+            margin-top: 25px;
+
+            font-size:
+                clamp(14px, 4vw, 21px);
+
+            letter-spacing: .15em;
+
+            opacity: .7;
+
+        }
+
+
+        /* =========================
+           最後のメッセージ
+        ========================= */
+
+        .message.last h1 {
+
+            color: #ffd9ef;
+
+            text-shadow:
+                0 0 10px #ffb5dd,
+                0 0 30px #ff69b4,
+                0 0 60px rgba(255,80,180,.6);
+
+        }
+
+
+        /* =========================
+           スクロール案内
+        ========================= */
+
+        .scroll-guide {
+
+            position: fixed;
+
+            bottom: 30px;
+
+            left: 0;
+
+            width: 100%;
+
+            text-align: center;
+
+            font-size: 12px;
+
+            letter-spacing: .3em;
+
+            opacity: .5;
+
+            transition: opacity .5s;
+
+        }
+
+
+        .arrow {
+
+            margin-top: 8px;
+
+            font-size: 20px;
+
+            animation: arrowMove 1.5s infinite;
+
+        }
+
+
+        @keyframes arrowMove {
+
+            0% {
+                transform: translateY(0);
+                opacity: .3;
+            }
+
+            50% {
+                transform: translateY(8px);
+                opacity: 1;
+            }
+
+            100% {
+                transform: translateY(0);
+                opacity: .3;
+            }
+
+        }
+
+
+        /* =========================
+           最後
+        ========================= */
+
+        .finished {
+
+            opacity: 0 !important;
+
+        }
+
+    </style>
+</head>
+
+
+<body>
+
+
+    <div class="stage">
+
+
+        <!-- 星 -->
+
+        <div class="stars">
+
+            <span class="star" style="left:8%; top:15%;"></span>
+            <span class="star" style="left:18%; top:65%;"></span>
+            <span class="star" style="left:28%; top:28%;"></span>
+            <span class="star" style="left:40%; top:80%;"></span>
+            <span class="star" style="left:53%; top:17%;"></span>
+            <span class="star" style="left:65%; top:62%;"></span>
+            <span class="star" style="left:76%; top:23%;"></span>
+            <span class="star" style="left:88%; top:72%;"></span>
+
+        </div>
+
+
+        <!-- =========================
+             シーン1
+        ========================= -->
+
+        <div class="message active">
+
+            <h1>
+                リコちゃん<br>
+                お誕生日おめでとう♡
+            </h1>
+
+            <p>
+                Happy Birthday, Riko 🎂
+            </p>
+
+        </div>
+
+
+        <!-- =========================
+             シーン2
+        ========================= -->
+
+        <div class="message">
+
+            <h1>
+                さぁ、<br>
+                お家に入りましょう 🏠
+            </h1>
+
+            <p>
+                素敵な時間はここから。
+            </p>
+
+        </div>
+
+
+        <!-- =========================
+             シーン3
+        ========================= -->
+
+        <div class="message last">
+
+            <h1>
+                カーテンに<br>
+                スマホをかざしてください。
+            </h1>
+
+            <p>
+                ✨ 次のサプライズへ ✨
+            </p>
+
+        </div>
+
+
+        <!-- スクロール案内 -->
+
+        <div class="scroll-guide">
+
+            SCROLL
+
+            <div class="arrow">
+                ↓
+            </div>
+
+        </div>
+
+
+    </div>
+
+
+    <script>
+
+        const messages =
+            document.querySelectorAll(".message");
+
+        const guide =
+            document.querySelector(".scroll-guide");
+
+
+        /*
+        ========================================
+        現在のシーン
+        ========================================
+        */
+
+        let currentScene = 0;
+
+
+        /*
+        ========================================
+        アニメーション中かどうか
+        ========================================
+
+        これが重要。
+
+        1回スクロール
+        ↓
+        1シーン移動
+        ↓
+        0.8秒ロック
+
+        なのでホイールを高速で回しても
+        一気に進まない。
+        */
+
+        let locked = false;
+
+
+        /*
+        ========================================
+        シーン変更
+        ========================================
+        */
+
+        function changeScene(nextScene) {
+
+            if (nextScene < 0) {
+                nextScene = 0;
+            }
+
+            if (nextScene >= messages.length) {
+                nextScene = messages.length - 1;
+            }
+
+
+            /*
+            同じシーンなら何もしない
+            */
+
+            if (nextScene === currentScene) {
+                return;
+            }
+
+
+            /*
+            現在のシーンを消す
+            */
+
+            messages[currentScene]
+                .classList.remove("active");
+
+
+            /*
+            次のシーンを表示
+            */
+
+            messages[nextScene]
+                .classList.add("active");
+
+
+            /*
+            現在位置を更新
+            */
+
+            currentScene = nextScene;
+
+
+            /*
+            SCROLL表示
+
+            最後まで行ったら消す
+            */
+
+            if (currentScene === messages.length - 1) {
+
+                guide.classList.add("finished");
+
+            } else {
+
+                guide.classList.remove("finished");
+
+            }
+
+        }
+
+
+        /*
+        ========================================
+        PC
+        マウスホイール
+        ========================================
+        */
+
+        window.addEventListener(
+            "wheel",
+            function(event) {
+
+                /*
+                アニメーション中なら無視
+                */
+
+                if (locked) {
+                    return;
+                }
+
+
+                /*
+                小さいホイール入力を無視
+
+                Macのトラックパッドなどで
+                細かいイベントが大量発生するのを防ぐ
+                */
+
+                if (Math.abs(event.deltaY) < 10) {
+                    return;
+                }
+
+
+                /*
+                ロック
+                */
+
+                locked = true;
+
+
+                /*
+                下スクロール
+                */
+
+                if (event.deltaY > 0) {
+
+                    changeScene(
+                        currentScene + 1
+                    );
+
+                }
+
+
+                /*
+                上スクロール
+                */
+
+                else {
+
+                    changeScene(
+                        currentScene - 1
+                    );
+
+                }
+
+
+                /*
+                約1秒間ロック
+
+                この間に何回ホイールしても
+                シーンは進まない
+                */
+
+                setTimeout(
+                    function() {
+
+                        locked = false;
+
+                    },
+                    900
+                );
+
+            },
+            {
+                passive: true
+            }
+        );
+
+
+        /*
+        ========================================
+        スマホ
+        スワイプ
+        ========================================
+        */
+
+        let touchStartY = 0;
+
+
+        document.addEventListener(
+            "touchstart",
+            function(event) {
+
+                touchStartY =
+                    event.touches[0].clientY;
+
+            },
+            {
+                passive: true
+            }
+        );
+
+
+        document.addEventListener(
+            "touchend",
+            function(event) {
+
+                if (locked) {
+                    return;
+                }
+
+
+                const touchEndY =
+                    event.changedTouches[0].clientY;
+
+
+                const distance =
+                    touchStartY - touchEndY;
+
+
+                /*
+                50px以上動かしたら
+                1回のスワイプと判定
+                */
+
+                if (Math.abs(distance) < 50) {
+                    return;
+                }
+
+
+                locked = true;
+
+
+                /*
+                上方向にスワイプ
+                */
+
+                if (distance > 0) {
+
+                    changeScene(
+                        currentScene + 1
+                    );
+
+                }
+
+
+                /*
+                下方向にスワイプ
+                */
+
+                else {
+
+                    changeScene(
+                        currentScene - 1
+                    );
+
+                }
+
+
+                /*
+                ロック解除
+                */
+
+                setTimeout(
+                    function() {
+
+                        locked = false;
+
+                    },
+                    900
+                );
+
+            },
+            {
+                passive: true
+            }
+        );
+
+    </script>
+
+</body>
+</html>
