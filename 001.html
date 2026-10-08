@@ -1,3 +1,4 @@
+```html
 <!DOCTYPE html>
 <html lang="ja">
 <head>
@@ -7,6 +8,7 @@
     <title>Happy Birthday ♡</title>
 
     <style>
+
         * {
             box-sizing: border-box;
         }
@@ -21,90 +23,185 @@
             font-family:
                 "Hiragino Kaku Gothic ProN",
                 "Yu Gothic",
+                "Noto Sans JP",
                 sans-serif;
 
-            background: #0b0710;
-            color: white;
+            color: #66545c;
+
+            background: #fffdfd;
         }
 
 
-        /* =========================
-           ステージ
-        ========================= */
+        /* =================================
+           メイン画面
+        ================================= */
 
         .stage {
-            position: fixed;
 
+            position: fixed;
             inset: 0;
 
             overflow: hidden;
 
             display: flex;
-            justify-content: center;
             align-items: center;
+            justify-content: center;
 
             background:
                 radial-gradient(
-                    circle at 50% 45%,
-                    #4a1b42 0%,
-                    #1d0d25 45%,
-                    #08060c 100%
+                    circle at 50% 40%,
+                    #ffffff 0%,
+                    #fffafb 48%,
+                    #fff1f6 100%
                 );
 
-            transition:
-                background 1s ease;
         }
 
 
-        /* =========================
-           星
-        ========================= */
+        /* =================================
+           ふわっとした光
+        ================================= */
 
-        .stars {
+        .glow {
+
+            position: absolute;
+
+            width: 420px;
+            height: 420px;
+
+            border-radius: 50%;
+
+            background:
+                radial-gradient(
+                    circle,
+                    rgba(255, 210, 225, .38),
+                    rgba(255, 240, 246, 0) 70%
+                );
+
+            filter: blur(15px);
+
+            animation: glow 5s ease-in-out infinite;
+
+        }
+
+
+        @keyframes glow {
+
+            0%,
+            100% {
+                transform: scale(.9);
+                opacity: .55;
+            }
+
+            50% {
+                transform: scale(1.1);
+                opacity: .9;
+            }
+
+        }
+
+
+        /* =================================
+           キラキラ
+        ================================= */
+
+        .sparkles {
+
             position: absolute;
             inset: 0;
 
             pointer-events: none;
+
         }
 
-        .star {
+
+        .sparkle {
+
             position: absolute;
 
-            width: 4px;
-            height: 4px;
+            color: #e9b8c9;
 
-            border-radius: 50%;
+            font-size: 13px;
 
-            background: white;
+            opacity: .45;
 
-            box-shadow:
-                0 0 8px white,
-                0 0 20px #ff9fd5;
+            animation:
+                sparkle 3s ease-in-out infinite;
 
-            animation: twinkle 2s infinite ease-in-out;
         }
 
-        @keyframes twinkle {
+
+        @keyframes sparkle {
 
             0%,
             100% {
-                opacity: 0.2;
-                transform: scale(0.7);
+                opacity: .15;
+                transform: scale(.7) rotate(0deg);
             }
 
             50% {
-                opacity: 1;
-                transform: scale(1.4);
+                opacity: .8;
+                transform: scale(1.2) rotate(20deg);
             }
 
         }
 
 
-        /* =========================
+        /* =================================
+           小さなハート
+        ================================= */
+
+        .heart {
+
+            position: absolute;
+
+            color: #e9aabd;
+
+            opacity: .25;
+
+            font-size: 18px;
+
+            animation:
+                floatHeart 7s ease-in-out infinite;
+
+        }
+
+
+        @keyframes floatHeart {
+
+            0% {
+                transform:
+                    translateY(40px)
+                    rotate(-10deg);
+
+                opacity: 0;
+            }
+
+            20% {
+                opacity: .3;
+            }
+
+            80% {
+                opacity: .2;
+            }
+
+            100% {
+                transform:
+                    translateY(-100px)
+                    rotate(10deg);
+
+                opacity: 0;
+            }
+
+        }
+
+
+        /* =================================
            メッセージ
-        ========================= */
+        ================================= */
 
         .message {
+
             position: absolute;
 
             width: 100%;
@@ -116,17 +213,18 @@
             opacity: 0;
 
             transform:
-                translateY(100px)
-                scale(0.95);
+                translateY(90px)
+                scale(.96);
 
             filter: blur(10px);
 
             pointer-events: none;
 
             transition:
-                opacity 0.7s ease,
-                transform 0.8s cubic-bezier(.22,1,.36,1),
-                filter 0.7s ease;
+                opacity .8s ease,
+                transform .9s cubic-bezier(.22,1,.36,1),
+                filter .8s ease;
+
         }
 
 
@@ -143,64 +241,149 @@
         }
 
 
+        /* =================================
+           タイトル
+        ================================= */
+
         .message h1 {
 
             margin: 0;
 
+            color: #705b64;
+
+            font-weight: 500;
+
             font-size:
-                clamp(30px, 8vw, 65px);
+                clamp(29px, 7.5vw, 62px);
 
-            line-height: 1.45;
+            line-height: 1.5;
 
-            letter-spacing: 0.06em;
+            letter-spacing: .08em;
 
             text-shadow:
-                0 0 10px rgba(255, 190, 230, .9),
-                0 0 30px rgba(255, 80, 180, .5),
-                0 0 60px rgba(255, 80, 180, .2);
+                0 2px 12px rgba(255,255,255,.9);
 
         }
 
+
+        /* =================================
+           サブタイトル
+        ================================= */
 
         .message p {
 
             margin-top: 25px;
 
+            color: #b58b99;
+
             font-size:
-                clamp(14px, 4vw, 21px);
+                clamp(13px, 3.5vw, 19px);
 
-            letter-spacing: .15em;
+            font-weight: 400;
 
-            opacity: .7;
-
-        }
-
-
-        /* =========================
-           最後のメッセージ
-        ========================= */
-
-        .message.last h1 {
-
-            color: #ffd9ef;
-
-            text-shadow:
-                0 0 10px #ffb5dd,
-                0 0 30px #ff69b4,
-                0 0 60px rgba(255,80,180,.6);
+            letter-spacing: .16em;
 
         }
 
 
-        /* =========================
-           スクロール案内
-        ========================= */
+        /* =================================
+           1つ目
+        ================================= */
+
+        .birthday h1 {
+
+            color: #735b65;
+
+        }
+
+
+        .birthday h1::before {
+
+            content: "♡";
+
+            display: block;
+
+            margin-bottom: 15px;
+
+            color: #e4a4b9;
+
+            font-size: 24px;
+
+        }
+
+
+        /* =================================
+           2つ目
+        ================================= */
+
+        .home h1 {
+
+            color: #735f66;
+
+        }
+
+
+        .home h1::after {
+
+            content: "✿";
+
+            display: block;
+
+            margin-top: 18px;
+
+            color: #e7b1c2;
+
+            font-size: 22px;
+
+        }
+
+
+        /* =================================
+           3つ目
+        ================================= */
+
+        .last h1 {
+
+            color: #725863;
+
+            font-weight: 500;
+
+        }
+
+
+        .last p {
+
+            color: #d08fa6;
+
+            animation:
+                softBlink 2.5s ease-in-out infinite;
+
+        }
+
+
+        @keyframes softBlink {
+
+            0%,
+            100% {
+                opacity: .45;
+            }
+
+            50% {
+                opacity: 1;
+            }
+
+        }
+
+
+        /* =================================
+           下のスクロール表示
+        ================================= */
 
         .scroll-guide {
 
             position: fixed;
 
-            bottom: 30px;
+            bottom: 27px;
 
             left: 0;
 
@@ -208,13 +391,14 @@
 
             text-align: center;
 
-            font-size: 12px;
+            color: #c9aab5;
 
-            letter-spacing: .3em;
+            font-size: 10px;
 
-            opacity: .5;
+            letter-spacing: .35em;
 
-            transition: opacity .5s;
+            transition:
+                opacity .5s ease;
 
         }
 
@@ -223,42 +407,40 @@
 
             margin-top: 8px;
 
-            font-size: 20px;
+            color: #dca7b9;
 
-            animation: arrowMove 1.5s infinite;
+            font-size: 17px;
+
+            animation:
+                arrow 1.7s ease-in-out infinite;
 
         }
 
 
-        @keyframes arrowMove {
+        @keyframes arrow {
 
-            0% {
+            0%,
+            100% {
                 transform: translateY(0);
-                opacity: .3;
+
+                opacity: .35;
             }
 
             50% {
-                transform: translateY(8px);
-                opacity: 1;
-            }
+                transform: translateY(7px);
 
-            100% {
-                transform: translateY(0);
-                opacity: .3;
+                opacity: .9;
             }
 
         }
 
 
-        /* =========================
-           最後
-        ========================= */
+        .hidden {
 
-        .finished {
-
-            opacity: 0 !important;
+            opacity: 0;
 
         }
+
 
     </style>
 </head>
@@ -270,27 +452,76 @@
     <div class="stage">
 
 
-        <!-- 星 -->
+        <!-- やわらかい光 -->
 
-        <div class="stars">
+        <div class="glow"></div>
 
-            <span class="star" style="left:8%; top:15%;"></span>
-            <span class="star" style="left:18%; top:65%;"></span>
-            <span class="star" style="left:28%; top:28%;"></span>
-            <span class="star" style="left:40%; top:80%;"></span>
-            <span class="star" style="left:53%; top:17%;"></span>
-            <span class="star" style="left:65%; top:62%;"></span>
-            <span class="star" style="left:76%; top:23%;"></span>
-            <span class="star" style="left:88%; top:72%;"></span>
+
+        <!-- キラキラ -->
+
+        <div class="sparkles">
+
+            <span class="sparkle"
+                style="left:10%; top:17%; animation-delay:.3s;">
+                ✦
+            </span>
+
+            <span class="sparkle"
+                style="left:22%; top:70%; animation-delay:1.4s;">
+                ✧
+            </span>
+
+            <span class="sparkle"
+                style="left:34%; top:25%; animation-delay:.8s;">
+                ✦
+            </span>
+
+            <span class="sparkle"
+                style="left:51%; top:78%; animation-delay:2s;">
+                ✧
+            </span>
+
+            <span class="sparkle"
+                style="left:63%; top:18%; animation-delay:.5s;">
+                ✦
+            </span>
+
+            <span class="sparkle"
+                style="left:77%; top:65%; animation-delay:1.7s;">
+                ✧
+            </span>
+
+            <span class="sparkle"
+                style="left:89%; top:30%; animation-delay:1s;">
+                ✦
+            </span>
 
         </div>
 
 
-        <!-- =========================
-             シーン1
-        ========================= -->
+        <!-- ハート -->
 
-        <div class="message active">
+        <div class="heart"
+            style="left:12%; top:70%; animation-delay:1s;">
+            ♡
+        </div>
+
+        <div class="heart"
+            style="left:83%; top:65%; animation-delay:3s;">
+            ♡
+        </div>
+
+        <div class="heart"
+            style="left:25%; top:20%; animation-delay:5s;">
+            ♡
+        </div>
+
+
+        <!-- =========================
+             ①
+        ========================== -->
+
+        <div class="message birthday active">
 
             <h1>
                 リコちゃん<br>
@@ -298,43 +529,46 @@
             </h1>
 
             <p>
-                Happy Birthday, Riko 🎂
+                Happy Birthday, Riko
             </p>
 
         </div>
 
 
         <!-- =========================
-             シーン2
-        ========================= -->
+             ②
+        ========================== -->
 
-        <div class="message">
+        <div class="message home">
 
             <h1>
-                さぁ、<br>
-                お家に入りましょう 🏠
+                お家に入って〜！！！
             </h1>
 
             <p>
-                素敵な時間はここから。
+                何があるかなぁ〜？
             </p>
 
         </div>
 
 
         <!-- =========================
-             シーン3
-        ========================= -->
+             ③
+        ========================== -->
 
         <div class="message last">
 
             <h1>
-                カーテンに<br>
-                スマホをかざしてください。
+                문제 풀기！<br>
+                쇼고가 저녁에 집 들어가서 맨 처은메 하는 행동은?<br>
+                생각날 곳에
+                스마트폰을 <br>
+                갖다 대 주세요
             </h1>
 
             <p>
-                ✨ 次のサプライズへ ✨
+                ✦ 反応するところ探してね ✦<br>
+                ヒント：カーテンの真ん中あたり
             </p>
 
         </div>
@@ -358,53 +592,44 @@
 
     <script>
 
+
+        /* =================================
+           シーン
+        ================================= */
+
         const messages =
             document.querySelectorAll(".message");
+
 
         const guide =
             document.querySelector(".scroll-guide");
 
 
-        /*
-        ========================================
-        現在のシーン
-        ========================================
-        */
-
         let currentScene = 0;
 
 
         /*
-        ========================================
-        アニメーション中かどうか
-        ========================================
-
-        これが重要。
-
-        1回スクロール
-        ↓
-        1シーン移動
-        ↓
-        0.8秒ロック
-
-        なのでホイールを高速で回しても
-        一気に進まない。
-        */
+         * 連続スクロール防止
+         */
 
         let locked = false;
 
 
         /*
-        ========================================
-        シーン変更
-        ========================================
-        */
+         * シーン変更
+         */
 
         function changeScene(nextScene) {
+
+
+            /*
+             * 範囲外なら止める
+             */
 
             if (nextScene < 0) {
                 nextScene = 0;
             }
+
 
             if (nextScene >= messages.length) {
                 nextScene = messages.length - 1;
@@ -412,8 +637,8 @@
 
 
             /*
-            同じシーンなら何もしない
-            */
+             * 同じなら何もしない
+             */
 
             if (nextScene === currentScene) {
                 return;
@@ -421,61 +646,61 @@
 
 
             /*
-            現在のシーンを消す
-            */
+             * 今の文字を消す
+             */
 
             messages[currentScene]
                 .classList.remove("active");
 
 
             /*
-            次のシーンを表示
-            */
+             * 次の文字を出す
+             */
 
             messages[nextScene]
                 .classList.add("active");
 
 
             /*
-            現在位置を更新
-            */
+             * 現在位置
+             */
 
             currentScene = nextScene;
 
 
             /*
-            SCROLL表示
+             * 最後ならSCROLLを消す
+             */
 
-            最後まで行ったら消す
-            */
+            if (
+                currentScene ===
+                messages.length - 1
+            ) {
 
-            if (currentScene === messages.length - 1) {
-
-                guide.classList.add("finished");
+                guide.classList.add("hidden");
 
             } else {
 
-                guide.classList.remove("finished");
+                guide.classList.remove("hidden");
 
             }
 
         }
 
 
-        /*
-        ========================================
-        PC
-        マウスホイール
-        ========================================
-        */
+        /* =================================
+           PC / Mac
+           ホイール
+        ================================= */
 
         window.addEventListener(
             "wheel",
             function(event) {
 
+
                 /*
-                アニメーション中なら無視
-                */
+                 * アニメーション中は無視
+                 */
 
                 if (locked) {
                     return;
@@ -483,27 +708,26 @@
 
 
                 /*
-                小さいホイール入力を無視
+                 * 小さい入力を無視
+                 */
 
-                Macのトラックパッドなどで
-                細かいイベントが大量発生するのを防ぐ
-                */
-
-                if (Math.abs(event.deltaY) < 10) {
+                if (
+                    Math.abs(event.deltaY) < 10
+                ) {
                     return;
                 }
 
 
                 /*
-                ロック
-                */
+                 * ロック
+                 */
 
                 locked = true;
 
 
                 /*
-                下スクロール
-                */
+                 * 下
+                 */
 
                 if (event.deltaY > 0) {
 
@@ -515,8 +739,8 @@
 
 
                 /*
-                上スクロール
-                */
+                 * 上
+                 */
 
                 else {
 
@@ -528,11 +752,9 @@
 
 
                 /*
-                約1秒間ロック
-
-                この間に何回ホイールしても
-                シーンは進まない
-                */
+                 * 1回のスクロールにつき
+                 * 必ず1シーンだけ
+                 */
 
                 setTimeout(
                     function() {
@@ -543,6 +765,7 @@
                     900
                 );
 
+
             },
             {
                 passive: true
@@ -550,12 +773,10 @@
         );
 
 
-        /*
-        ========================================
-        スマホ
-        スワイプ
-        ========================================
-        */
+        /* =================================
+           スマホ
+           スワイプ
+        ================================= */
 
         let touchStartY = 0;
 
@@ -578,6 +799,7 @@
             "touchend",
             function(event) {
 
+
                 if (locked) {
                     return;
                 }
@@ -592,11 +814,12 @@
 
 
                 /*
-                50px以上動かしたら
-                1回のスワイプと判定
-                */
+                 * 小さい動きは無視
+                 */
 
-                if (Math.abs(distance) < 50) {
+                if (
+                    Math.abs(distance) < 50
+                ) {
                     return;
                 }
 
@@ -605,8 +828,8 @@
 
 
                 /*
-                上方向にスワイプ
-                */
+                 * 上にスワイプ
+                 */
 
                 if (distance > 0) {
 
@@ -618,8 +841,8 @@
 
 
                 /*
-                下方向にスワイプ
-                */
+                 * 下にスワイプ
+                 */
 
                 else {
 
@@ -631,8 +854,8 @@
 
 
                 /*
-                ロック解除
-                */
+                 * ロック解除
+                 */
 
                 setTimeout(
                     function() {
@@ -643,13 +866,16 @@
                     900
                 );
 
+
             },
             {
                 passive: true
             }
         );
 
+
     </script>
 
 </body>
 </html>
+```
