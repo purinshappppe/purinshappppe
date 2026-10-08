@@ -1,0 +1,881 @@
+```html
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Happy Birthday ♡</title>
+
+    <style>
+
+        * {
+            box-sizing: border-box;
+        }
+
+        html,
+        body {
+            margin: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+
+            font-family:
+                "Hiragino Kaku Gothic ProN",
+                "Yu Gothic",
+                "Noto Sans JP",
+                sans-serif;
+
+            color: #66545c;
+
+            background: #fffdfd;
+        }
+
+
+        /* =================================
+           メイン画面
+        ================================= */
+
+        .stage {
+
+            position: fixed;
+            inset: 0;
+
+            overflow: hidden;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            background:
+                radial-gradient(
+                    circle at 50% 40%,
+                    #ffffff 0%,
+                    #fffafb 48%,
+                    #fff1f6 100%
+                );
+
+        }
+
+
+        /* =================================
+           ふわっとした光
+        ================================= */
+
+        .glow {
+
+            position: absolute;
+
+            width: 420px;
+            height: 420px;
+
+            border-radius: 50%;
+
+            background:
+                radial-gradient(
+                    circle,
+                    rgba(255, 210, 225, .38),
+                    rgba(255, 240, 246, 0) 70%
+                );
+
+            filter: blur(15px);
+
+            animation: glow 5s ease-in-out infinite;
+
+        }
+
+
+        @keyframes glow {
+
+            0%,
+            100% {
+                transform: scale(.9);
+                opacity: .55;
+            }
+
+            50% {
+                transform: scale(1.1);
+                opacity: .9;
+            }
+
+        }
+
+
+        /* =================================
+           キラキラ
+        ================================= */
+
+        .sparkles {
+
+            position: absolute;
+            inset: 0;
+
+            pointer-events: none;
+
+        }
+
+
+        .sparkle {
+
+            position: absolute;
+
+            color: #e9b8c9;
+
+            font-size: 13px;
+
+            opacity: .45;
+
+            animation:
+                sparkle 3s ease-in-out infinite;
+
+        }
+
+
+        @keyframes sparkle {
+
+            0%,
+            100% {
+                opacity: .15;
+                transform: scale(.7) rotate(0deg);
+            }
+
+            50% {
+                opacity: .8;
+                transform: scale(1.2) rotate(20deg);
+            }
+
+        }
+
+
+        /* =================================
+           小さなハート
+        ================================= */
+
+        .heart {
+
+            position: absolute;
+
+            color: #e9aabd;
+
+            opacity: .25;
+
+            font-size: 18px;
+
+            animation:
+                floatHeart 7s ease-in-out infinite;
+
+        }
+
+
+        @keyframes floatHeart {
+
+            0% {
+                transform:
+                    translateY(40px)
+                    rotate(-10deg);
+
+                opacity: 0;
+            }
+
+            20% {
+                opacity: .3;
+            }
+
+            80% {
+                opacity: .2;
+            }
+
+            100% {
+                transform:
+                    translateY(-100px)
+                    rotate(10deg);
+
+                opacity: 0;
+            }
+
+        }
+
+
+        /* =================================
+           メッセージ
+        ================================= */
+
+        .message {
+
+            position: absolute;
+
+            width: 100%;
+
+            padding: 30px;
+
+            text-align: center;
+
+            opacity: 0;
+
+            transform:
+                translateY(90px)
+                scale(.96);
+
+            filter: blur(10px);
+
+            pointer-events: none;
+
+            transition:
+                opacity .8s ease,
+                transform .9s cubic-bezier(.22,1,.36,1),
+                filter .8s ease;
+
+        }
+
+
+        .message.active {
+
+            opacity: 1;
+
+            transform:
+                translateY(0)
+                scale(1);
+
+            filter: blur(0);
+
+        }
+
+
+        /* =================================
+           タイトル
+        ================================= */
+
+        .message h1 {
+
+            margin: 0;
+
+            color: #705b64;
+
+            font-weight: 500;
+
+            font-size:
+                clamp(29px, 7.5vw, 62px);
+
+            line-height: 1.5;
+
+            letter-spacing: .08em;
+
+            text-shadow:
+                0 2px 12px rgba(255,255,255,.9);
+
+        }
+
+
+        /* =================================
+           サブタイトル
+        ================================= */
+
+        .message p {
+
+            margin-top: 25px;
+
+            color: #b58b99;
+
+            font-size:
+                clamp(13px, 3.5vw, 19px);
+
+            font-weight: 400;
+
+            letter-spacing: .16em;
+
+        }
+
+
+        /* =================================
+           1つ目
+        ================================= */
+
+        .birthday h1 {
+
+            color: #735b65;
+
+        }
+
+
+        .birthday h1::before {
+
+            content: "♡";
+
+            display: block;
+
+            margin-bottom: 15px;
+
+            color: #e4a4b9;
+
+            font-size: 24px;
+
+        }
+
+
+        /* =================================
+           2つ目
+        ================================= */
+
+        .home h1 {
+
+            color: #735f66;
+
+        }
+
+
+        .home h1::after {
+
+            content: "✿";
+
+            display: block;
+
+            margin-top: 18px;
+
+            color: #e7b1c2;
+
+            font-size: 22px;
+
+        }
+
+
+        /* =================================
+           3つ目
+        ================================= */
+
+        .last h1 {
+
+            color: #725863;
+
+            font-weight: 500;
+
+        }
+
+
+        .last p {
+
+            color: #d08fa6;
+
+            animation:
+                softBlink 2.5s ease-in-out infinite;
+
+        }
+
+
+        @keyframes softBlink {
+
+            0%,
+            100% {
+                opacity: .45;
+            }
+
+            50% {
+                opacity: 1;
+            }
+
+        }
+
+
+        /* =================================
+           下のスクロール表示
+        ================================= */
+
+        .scroll-guide {
+
+            position: fixed;
+
+            bottom: 27px;
+
+            left: 0;
+
+            width: 100%;
+
+            text-align: center;
+
+            color: #c9aab5;
+
+            font-size: 10px;
+
+            letter-spacing: .35em;
+
+            transition:
+                opacity .5s ease;
+
+        }
+
+
+        .arrow {
+
+            margin-top: 8px;
+
+            color: #dca7b9;
+
+            font-size: 17px;
+
+            animation:
+                arrow 1.7s ease-in-out infinite;
+
+        }
+
+
+        @keyframes arrow {
+
+            0%,
+            100% {
+                transform: translateY(0);
+
+                opacity: .35;
+            }
+
+            50% {
+                transform: translateY(7px);
+
+                opacity: .9;
+            }
+
+        }
+
+
+        .hidden {
+
+            opacity: 0;
+
+        }
+
+
+    </style>
+</head>
+
+
+<body>
+
+
+    <div class="stage">
+
+
+        <!-- やわらかい光 -->
+
+        <div class="glow"></div>
+
+
+        <!-- キラキラ -->
+
+        <div class="sparkles">
+
+            <span class="sparkle"
+                style="left:10%; top:17%; animation-delay:.3s;">
+                ✦
+            </span>
+
+            <span class="sparkle"
+                style="left:22%; top:70%; animation-delay:1.4s;">
+                ✧
+            </span>
+
+            <span class="sparkle"
+                style="left:34%; top:25%; animation-delay:.8s;">
+                ✦
+            </span>
+
+            <span class="sparkle"
+                style="left:51%; top:78%; animation-delay:2s;">
+                ✧
+            </span>
+
+            <span class="sparkle"
+                style="left:63%; top:18%; animation-delay:.5s;">
+                ✦
+            </span>
+
+            <span class="sparkle"
+                style="left:77%; top:65%; animation-delay:1.7s;">
+                ✧
+            </span>
+
+            <span class="sparkle"
+                style="left:89%; top:30%; animation-delay:1s;">
+                ✦
+            </span>
+
+        </div>
+
+
+        <!-- ハート -->
+
+        <div class="heart"
+            style="left:12%; top:70%; animation-delay:1s;">
+            ♡
+        </div>
+
+        <div class="heart"
+            style="left:83%; top:65%; animation-delay:3s;">
+            ♡
+        </div>
+
+        <div class="heart"
+            style="left:25%; top:20%; animation-delay:5s;">
+            ♡
+        </div>
+
+
+        <!-- =========================
+             ①
+        ========================== -->
+
+        <div class="message birthday active">
+
+            <h1>
+                리코짱!<br>
+                잘 찾았네!!!!
+            </h1>
+
+            <p>
+                생일 축하해〜♡
+            </p>
+
+        </div>
+
+
+        <!-- =========================
+             ②
+        ========================== -->
+
+        <div class="message home">
+
+            <h1>
+                다음은 냉장고 앞에 가봐!!! <br>
+            </h1>
+
+            <p>
+                히히^^
+            </p>
+
+        </div>
+
+
+        <!-- =========================
+             ③
+        ========================== -->
+
+        <div class="message last">
+
+            <h1>
+                문제 풀기！<br>
+                쇼고가 제일 좋아하는 <br>사진은 뭘까요〜?<br>
+                생각날 곳에
+                스마트폰을 <br>
+                갖다 대 주세요
+            </h1>
+
+            <p>
+                ✦ 反応するところ探してね ✦<br>
+                ヒント：あ、それ！？ってなるかも？？
+            </p>
+
+        </div>
+
+
+        <!-- スクロール案内 -->
+
+        <div class="scroll-guide">
+
+            SCROLL
+
+            <div class="arrow">
+                ↓
+            </div>
+
+        </div>
+
+
+    </div>
+
+
+    <script>
+
+
+        /* =================================
+           シーン
+        ================================= */
+
+        const messages =
+            document.querySelectorAll(".message");
+
+
+        const guide =
+            document.querySelector(".scroll-guide");
+
+
+        let currentScene = 0;
+
+
+        /*
+         * 連続スクロール防止
+         */
+
+        let locked = false;
+
+
+        /*
+         * シーン変更
+         */
+
+        function changeScene(nextScene) {
+
+
+            /*
+             * 範囲外なら止める
+             */
+
+            if (nextScene < 0) {
+                nextScene = 0;
+            }
+
+
+            if (nextScene >= messages.length) {
+                nextScene = messages.length - 1;
+            }
+
+
+            /*
+             * 同じなら何もしない
+             */
+
+            if (nextScene === currentScene) {
+                return;
+            }
+
+
+            /*
+             * 今の文字を消す
+             */
+
+            messages[currentScene]
+                .classList.remove("active");
+
+
+            /*
+             * 次の文字を出す
+             */
+
+            messages[nextScene]
+                .classList.add("active");
+
+
+            /*
+             * 現在位置
+             */
+
+            currentScene = nextScene;
+
+
+            /*
+             * 最後ならSCROLLを消す
+             */
+
+            if (
+                currentScene ===
+                messages.length - 1
+            ) {
+
+                guide.classList.add("hidden");
+
+            } else {
+
+                guide.classList.remove("hidden");
+
+            }
+
+        }
+
+
+        /* =================================
+           PC / Mac
+           ホイール
+        ================================= */
+
+        window.addEventListener(
+            "wheel",
+            function(event) {
+
+
+                /*
+                 * アニメーション中は無視
+                 */
+
+                if (locked) {
+                    return;
+                }
+
+
+                /*
+                 * 小さい入力を無視
+                 */
+
+                if (
+                    Math.abs(event.deltaY) < 10
+                ) {
+                    return;
+                }
+
+
+                /*
+                 * ロック
+                 */
+
+                locked = true;
+
+
+                /*
+                 * 下
+                 */
+
+                if (event.deltaY > 0) {
+
+                    changeScene(
+                        currentScene + 1
+                    );
+
+                }
+
+
+                /*
+                 * 上
+                 */
+
+                else {
+
+                    changeScene(
+                        currentScene - 1
+                    );
+
+                }
+
+
+                /*
+                 * 1回のスクロールにつき
+                 * 必ず1シーンだけ
+                 */
+
+                setTimeout(
+                    function() {
+
+                        locked = false;
+
+                    },
+                    900
+                );
+
+
+            },
+            {
+                passive: true
+            }
+        );
+
+
+        /* =================================
+           スマホ
+           スワイプ
+        ================================= */
+
+        let touchStartY = 0;
+
+
+        document.addEventListener(
+            "touchstart",
+            function(event) {
+
+                touchStartY =
+                    event.touches[0].clientY;
+
+            },
+            {
+                passive: true
+            }
+        );
+
+
+        document.addEventListener(
+            "touchend",
+            function(event) {
+
+
+                if (locked) {
+                    return;
+                }
+
+
+                const touchEndY =
+                    event.changedTouches[0].clientY;
+
+
+                const distance =
+                    touchStartY - touchEndY;
+
+
+                /*
+                 * 小さい動きは無視
+                 */
+
+                if (
+                    Math.abs(distance) < 50
+                ) {
+                    return;
+                }
+
+
+                locked = true;
+
+
+                /*
+                 * 上にスワイプ
+                 */
+
+                if (distance > 0) {
+
+                    changeScene(
+                        currentScene + 1
+                    );
+
+                }
+
+
+                /*
+                 * 下にスワイプ
+                 */
+
+                else {
+
+                    changeScene(
+                        currentScene - 1
+                    );
+
+                }
+
+
+                /*
+                 * ロック解除
+                 */
+
+                setTimeout(
+                    function() {
+
+                        locked = false;
+
+                    },
+                    900
+                );
+
+
+            },
+            {
+                passive: true
+            }
+        );
+
+
+    </script>
+
+</body>
+</html>
+```
