@@ -1,0 +1,720 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>文字起こし 監視</title>
+<style>
+:root{
+  --bg:#0e1612; --panel:#15211b; --panel2:#1a2b22; --head:#1f3a2b; --border:#3fbf7f; --border2:#2f7a55;
+  --fg:#3dff8a; --text:#d9ffe9; --dim:#8fc7a6; --accent:#4de1ff; --warn:#ffd84a; --err:#ff6b86;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font:14px/1.5 Consolas,Menlo,"Meiryo",monospace}
+a{color:var(--accent)}
+header{display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:12px 16px;border-bottom:2px solid var(--border);background:var(--panel)}
+header h1{margin:0;font-size:18px;color:var(--fg);letter-spacing:.5px}
+header .sp{flex:1}
+button,.btn{background:var(--head);color:var(--fg);border:2px solid var(--border);padding:6px 12px;cursor:pointer;font:inherit;font-weight:bold}
+button:hover{background:#2d5a40}
+button:disabled{opacity:.5;cursor:default}
+input[type=text]{background:var(--panel);color:var(--text);border:2px solid var(--border2);padding:7px 9px;font:inherit;width:100%}
+main{padding:14px 16px;max-width:1200px;margin:0 auto}
+.grid{display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(320px,1fr))}
+.card{border:2px solid var(--border);background:var(--panel);margin-bottom:12px}
+.card>h2{margin:0;padding:5px 10px;font-size:13px;background:var(--head);color:var(--accent)}
+.card .body{padding:10px}
+.badge{display:inline-block;padding:3px 10px;border:2px solid var(--border);font-weight:bold}
+.badge.idle{color:var(--dim);border-color:var(--border2)}
+.badge.processing,.badge.downloading{color:var(--accent);border-color:var(--accent)}
+.bar{height:16px;background:var(--panel2);border:1px solid var(--border2);position:relative}
+.bar>i{display:block;height:100%;background:var(--fg)}
+.bar.small{height:10px}
+.bar>span{position:absolute;right:6px;top:-1px;font-size:11px;color:#06210f}
+table{width:100%;border-collapse:collapse}
+th,td{text-align:left;padding:5px 8px;border-bottom:1px solid var(--border2);vertical-align:middle}
+th{color:var(--accent);background:var(--panel2);font-size:12px}
+tr:nth-child(even) td{background:var(--panel2)}
+.dim{color:var(--dim)} .warn{color:var(--warn)} .err{color:var(--err)} .ok{color:var(--fg)}
+.pill{display:inline-block;padding:0 7px;border:1px solid var(--border2);margin-right:4px;font-size:12px}
+.pill.parent{color:var(--warn);border-color:var(--warn)}
+.msg{padding:9px 12px;border:2px solid var(--warn);color:var(--warn);margin-bottom:12px}
+.msg.err{border-color:var(--err);color:var(--err)}
+.drop{border:2px dashed var(--border);padding:18px;text-align:center;color:var(--dim)}
+.drop.over{background:var(--panel2);color:var(--fg)}
+.tabs{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px}
+.tabs button.on{background:var(--fg);color:var(--bg)}
+.scroll{overflow-x:auto}
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.7);display:flex;align-items:center;justify-content:center;z-index:10}
+.modal .box{width:min(640px,94vw);max-height:86vh;overflow:auto;background:var(--bg);border:2px solid var(--border)}
+.modal pre{white-space:pre-wrap;margin:0;padding:10px}
+small{color:var(--dim)}
+</style>
+</head>
+<body>
+<header>
+  <h1>▸ 文字起こし 監視</h1>
+  <span id="rootName" class="dim"></span>
+  <span class="sp"></span>
+  <span id="who" class="dim"></span>
+  <button id="btnRoot" style="display:none" data-action="pickroot">フォルダ変更</button>
+  <button id="btnLogout" style="display:none" data-action="logout">ログアウト</button>
+</header>
+<main id="app"></main>
+<div id="modal"></div>
+
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+<script>
+"use strict";
+
+// ====================================================================
+//  文字起こしシステム 監視画面
+//   - Googleドライブに、会社のPCが書き出す status.json を読んで表示する
+//   - Driveの中身の確認、動画のアップロード(→ 01 フォルダ)もできる
+//   - コードに秘密は入っていません。OAuthクライアントIDは最初に入力して、このブラウザにだけ保存します
+// ====================================================================
+
+const API = "https://www.googleapis.com/drive/v3";
+const UPLOAD = "https://www.googleapis.com/upload/drive/v3";
+const SCOPE = "https://www.googleapis.com/auth/drive";
+const FOLDER = "application/vnd.google-apps.folder";
+
+const KEYS = ["inbox", "processing", "output", "done", "error"];
+const NUMBER = { inbox: "01", processing: "02", output: "03", done: "04", error: "05" };
+const LABEL = { inbox: "01 入力", processing: "02 処理中", output: "03 結果", done: "04 完了", error: "05 エラー" };
+const MEDIA = /\.(mp4|mov|avi|mkv|webm|m4v|mp3|wav|m4a|flac|aac|ogg)$/i;
+
+const POLL_STATUS_MS = 5000;
+const POLL_LISTS_MS = 20000;
+const STALE_SECONDS = 90;
+
+const S = {
+  clientId: "", rootId: "", rootName: "",
+  token: "", tokenExp: 0, email: "",
+  folders: {},            // key -> {id,name}
+  lists: {},              // key -> [files]
+  tab: "output",
+  status: null, statusModified: 0, statusFileId: "", statusModifiedRaw: "",
+  error: "", note: "",
+  uploads: [],            // {name, sent, total, state, error}
+};
+
+// ---------------------------------------------------------------- ユーティリティ
+function esc(s) {
+  return String(s == null ? "" : s)
+    .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;").replace(/'/g, "&#39;");
+}
+
+function fmtDur(sec) {
+  if (sec == null || !isFinite(sec)) return "--:--:--";
+  sec = Math.max(0, Math.round(sec));
+  const h = Math.floor(sec / 3600), m = Math.floor((sec % 3600) / 60), s = sec % 60;
+  return [h, m, s].map(v => String(v).padStart(2, "0")).join(":");
+}
+
+function fmtSize(n) {
+  n = Number(n || 0);
+  if (n >= 1e9) return (n / 1e9).toFixed(2) + " GB";
+  if (n >= 1e6) return (n / 1e6).toFixed(1) + " MB";
+  if (n >= 1e3) return (n / 1e3).toFixed(0) + " KB";
+  return n + " B";
+}
+
+function fmtDate(iso) {
+  if (!iso) return "";
+  const d = new Date(iso);
+  if (isNaN(d)) return "";
+  const p = v => String(v).padStart(2, "0");
+  return `${p(d.getMonth() + 1)}/${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}`;
+}
+
+// フォルダのURLやIDの貼り付けから、フォルダIDを取り出す
+function parseFolderInput(text) {
+  text = String(text || "").trim();
+  if (!text) return "";
+  let m = text.match(/\/folders\/([A-Za-z0-9_-]{10,})/);
+  if (m) return m[1];
+  m = text.match(/[?&]id=([A-Za-z0-9_-]{10,})/);
+  if (m) return m[1];
+  if (/^[A-Za-z0-9_-]{10,}$/.test(text)) return text;
+  return "";
+}
+
+// 「01...」「02...」で始まるフォルダ名を、役割ごとに割り当てる
+function pickFolders(children) {
+  const result = {};
+  for (const key of KEYS) {
+    const re = new RegExp("^" + NUMBER[key] + "(?!\\d)");
+    const found = children.find(c => c.mimeType === FOLDER && re.test(c.name));
+    if (found) result[key] = { id: found.id, name: found.name };
+  }
+  return result;
+}
+
+function qs(params) {
+  return Object.entries(params).map(([k, v]) => encodeURIComponent(k) + "=" + encodeURIComponent(v)).join("&");
+}
+
+// ---------------------------------------------------------------- Googleログイン
+let tokenClient = null;
+let pendingToken = null;
+
+function haveGoogle() {
+  return typeof google !== "undefined" && google.accounts && google.accounts.oauth2;
+}
+
+function initAuth() {
+  if (tokenClient || !S.clientId || !haveGoogle()) return !!tokenClient;
+  tokenClient = google.accounts.oauth2.initTokenClient({
+    client_id: S.clientId,
+    scope: SCOPE,
+    callback: onToken,
+    error_callback: err => {
+      if (pendingToken) { pendingToken[1](new Error(err && err.type ? err.type : "login_failed")); pendingToken = null; }
+    },
+  });
+  return true;
+}
+
+function onToken(resp) {
+  if (!pendingToken) return;
+  const [ok, fail] = pendingToken;
+  pendingToken = null;
+  if (resp.error) return fail(new Error(resp.error));
+  S.token = resp.access_token;
+  S.tokenExp = Date.now() + (Number(resp.expires_in || 3600) - 90) * 1000;
+  localStorage.setItem("tn_logged_in", "1");
+  ok(S.token);
+}
+
+function requestToken(prompt) {
+  return new Promise((ok, fail) => {
+    if (!initAuth()) return fail(new Error("Googleのログイン部品を読み込めていません"));
+    pendingToken = [ok, fail];
+    tokenClient.requestAccessToken({ prompt });
+  });
+}
+
+async function getToken() {
+  if (S.token && Date.now() < S.tokenExp) return S.token;
+  return requestToken(localStorage.getItem("tn_logged_in") ? "" : "consent");
+}
+
+// ---------------------------------------------------------------- Drive API
+async function api(path, params, opts) {
+  const token = await getToken();
+  const url = API + path + (params ? "?" + qs(params) : "");
+  const r = await fetch(url, Object.assign({ headers: { Authorization: "Bearer " + token } }, opts || {}));
+  if (r.status === 401) { S.token = ""; throw new Error("ログインが切れました。もう一度ログインしてください"); }
+  if (!r.ok) throw new Error("Drive API " + r.status);
+  return r;
+}
+
+async function listChildren(folderId, foldersOnly) {
+  let q = `'${folderId}' in parents and trashed=false`;
+  if (foldersOnly) q += ` and mimeType='${FOLDER}'`;
+  const files = [];
+  let pageToken = "";
+  for (;;) {
+    const params = {
+      q, pageSize: 1000, orderBy: foldersOnly ? "name" : "folder,name",
+      fields: "nextPageToken,files(id,name,mimeType,size,modifiedTime,md5Checksum)",
+      supportsAllDrives: "true", includeItemsFromAllDrives: "true",
+    };
+    if (pageToken) params.pageToken = pageToken;
+    const data = await (await api("/files", params)).json();
+    files.push(...(data.files || []));
+    pageToken = data.nextPageToken;
+    if (!pageToken) return files;
+  }
+}
+
+async function loadFolders() {
+  const children = await listChildren(S.rootId, true);
+  S.folders = pickFolders(children);
+}
+
+async function loadLists() {
+  if (!Object.keys(S.folders).length) await loadFolders();
+  for (const key of KEYS) {
+    const f = S.folders[key];
+    S.lists[key] = f ? (await listChildren(f.id, false)).filter(x => x.mimeType !== FOLDER) : [];
+  }
+}
+
+// status.json(会社のPCが15秒ごとに書き出す)
+async function loadStatus() {
+  const q = `'${S.rootId}' in parents and name='status.json' and trashed=false`;
+  const data = await (await api("/files", {
+    q, fields: "files(id,modifiedTime)", pageSize: 1, supportsAllDrives: "true", includeItemsFromAllDrives: "true",
+  })).json();
+  const f = (data.files || [])[0];
+  if (!f) { S.status = null; S.statusFileId = ""; S.note = "status.json がまだありません。会社のDriveホストが動いているか確認してください"; return; }
+  S.note = "";
+  if (f.id !== S.statusFileId || f.modifiedTime !== S.statusModifiedRaw) {
+    const r = await api("/files/" + f.id, { alt: "media", supportsAllDrives: "true" });
+    S.status = await r.json();
+    S.statusFileId = f.id;
+    S.statusModifiedRaw = f.modifiedTime;
+    S.statusModified = new Date(f.modifiedTime).getTime();
+  }
+}
+
+// ---------------------------------------------------------------- 表示
+function bar(percent, small) {
+  const p = Math.max(0, Math.min(100, Number(percent) || 0));
+  return `<div class="bar${small ? " small" : ""}"><i style="width:${p}%"></i>${small ? "" : `<span>${p.toFixed(0)}%</span>`}</div>`;
+}
+
+function stateLabel(st) {
+  if (st.state === "processing") return "処理中";
+  if (st.state === "downloading") return "ダウンロード中";
+  return "待機中";
+}
+
+function modeLabel(mode) {
+  return mode === "interactive" ? "ログイン中(手動)" : mode === "drive" ? "Drive自動処理" : mode === "background" ? "処理中(ログアウト後)" : "";
+}
+
+function renderStatus(st, now) {
+  if (!st) return `<div class="card"><h2>■ 状況</h2><div class="body dim">${esc(S.note || "読み込み中...")}</div></div>`;
+  now = now || Date.now();
+
+  // 古さは Drive のサーバー時刻(modifiedTime)で測る(会社PCと手元の時計がずれていても正しい)
+  const age = S.statusModified ? Math.max(0, (now - S.statusModified) / 1000) : 0;
+  const stale = age > STALE_SECONDS;
+
+  let html = "";
+  if (stale) {
+    html += `<div class="msg">会社のホスト「${esc(st.host)}」からの更新が ${Math.round(age / 60)} 分以上ありません。PCが止まっているか、Driveホストが停止している可能性があります。</div>`;
+  }
+
+  // ---- 全体 ----
+  let main = `<span class="badge ${esc(st.state)}">${esc(stateLabel(st))}</span> `;
+  main += `<small>更新 ${fmtDur(age).replace(/^00:/, "")} 前 / ホスト: ${esc(st.host)}</small>`;
+
+  if (st.state === "processing" && st.current) {
+    const c = st.current;
+    main += `<h3 style="margin:10px 0 4px">${esc(c.file)}</h3>${bar(c.percent)}
+      <div class="dim" style="margin-top:6px">
+        経過 ${fmtDur(c.elapsed)} ・ 残り目安 ${c.eta == null ? "計算中" : fmtDur(c.eta)} ・
+        Job ${esc(c.jobs_done)}/${esc(c.jobs_total)} ・ モデル ${esc(c.model)}
+      </div>`;
+  } else if (st.state === "downloading" && st.download) {
+    main += `<h3 style="margin:10px 0 4px">${esc(st.download.file)}</h3>${bar(st.download.percent)}
+      <div class="dim" style="margin-top:6px">会社のPCにDriveから取り込み中です</div>`;
+  } else if (st.parent && st.parent.file) {
+    main += `<h3 style="margin:10px 0 4px">${esc(st.parent.file)}</h3>${bar(st.parent.percent)}
+      <div class="dim" style="margin-top:6px">別のPC「${esc(st.parent.name)}」が処理中 (${esc(modeLabel(st.parent.mode))})</div>`;
+  } else {
+    main += `<div class="dim" style="margin-top:8px">処理中のものはありません。最後の完了: ${esc(st.last_result || "-")}</div>`;
+  }
+
+  if (st.queue && st.queue.length) {
+    main += `<div style="margin-top:8px"><span class="warn">待ち ${st.queue.length}件:</span> ${st.queue.map(esc).join(" / ")}</div>`;
+  }
+  html += `<div class="card"><h2>■ いまの状況</h2><div class="body">${main}</div></div>`;
+
+  // ---- つながっているPC ----
+  const workers = {};
+  (st.workers || []).forEach(w => { workers[w.name] = w; });
+
+  let rows = "";
+  (st.nodes || []).forEach(n => {
+    const w = workers[n.name];
+    const role = n.role === "parent" ? `<span class="pill parent">親機</span>` : `<span class="pill">子機</span>`;
+    const host = n.drive_host ? `<span class="pill">Driveホスト</span>` : "";
+    let detail = "";
+    if (w) {
+      const cls = w.status === "offline" ? "err" : w.status === "processing" ? "ok" : "dim";
+      detail = `<span class="${cls}">${esc(w.status)}</span> ${w.job && w.job !== "-" ? esc(w.job) : ""}
+        ${w.speed ? `<small>(${esc(w.speed)}x)</small>` : ""}${w.status === "processing" ? bar(w.progress, true) : ""}`;
+    } else if (n.role !== "parent") {
+      detail = n.busy ? `<span class="ok">作業中</span>` : `<span class="dim">待機中</span>`;
+    } else {
+      detail = n.busy ? `<span class="ok">処理中 ${esc(n.file || "")}</span>` : `<span class="dim">待機中</span>`;
+    }
+    rows += `<tr><td>${esc(n.name)}${n.self ? " <small>(ホスト)</small>" : ""}</td><td>${role}${host}</td><td>${detail}</td></tr>`;
+  });
+  html += `<div class="card"><h2>■ つながっているPC (${(st.nodes || []).length}台)</h2><div class="scroll"><table>
+    <tr><th>PC</th><th>役割</th><th>状態</th></tr>${rows || `<tr><td colspan="3" class="dim">なし</td></tr>`}</table></div></div>`;
+
+  // ---- Job ----
+  if (st.jobs && st.jobs.length) {
+    let jr = "";
+    st.jobs.forEach(j => {
+      const cls = j.status === "completed" ? "ok" : j.status === "processing" ? "" : "warn";
+      jr += `<tr><td>${esc(j.id)}</td><td>${fmtDur(j.start)} - ${fmtDur(j.end)}</td><td>${esc(j.worker)}</td>
+        <td class="${cls}">${esc(j.status)}</td><td style="min-width:90px">${bar(j.status === "completed" ? 100 : j.progress, true)}</td></tr>`;
+    });
+    html += `<div class="card"><h2>■ Job (${st.jobs.length}件)</h2><div class="scroll"><table>
+      <tr><th>Job</th><th>範囲</th><th>PC</th><th>状態</th><th>進み</th></tr>${jr}</table></div></div>`;
+  }
+  return html;
+}
+
+function renderFolders() {
+  let tabs = KEYS.map(k => {
+    const n = (S.lists[k] || []).length;
+    return `<button class="${S.tab === k ? "on" : ""}" data-action="tab" data-key="${k}">${esc(LABEL[k])} (${n})</button>`;
+  }).join("");
+
+  const items = S.lists[S.tab] || [];
+  let rows = items.map(f => {
+    const isText = /\.(txt|srt)$/i.test(f.name);
+    const actions = isText
+      ? `<button data-action="view" data-id="${esc(f.id)}" data-name="${esc(f.name)}">表示</button>
+         <button data-action="download" data-id="${esc(f.id)}" data-name="${esc(f.name)}">保存</button>`
+      : `<a href="https://drive.google.com/file/d/${esc(f.id)}/view" target="_blank" rel="noopener">開く</a>`;
+    return `<tr><td>${esc(f.name)}</td><td>${fmtSize(f.size)}</td><td>${esc(fmtDate(f.modifiedTime))}</td><td>${actions}</td></tr>`;
+  }).join("");
+
+  return `<div class="card"><h2>■ Driveの中身</h2><div class="body">
+    <div class="tabs">${tabs}</div>
+    <div class="scroll"><table><tr><th>名前</th><th>サイズ</th><th>更新</th><th></th></tr>
+    ${rows || `<tr><td colspan="4" class="dim">空です</td></tr>`}</table></div></div></div>`;
+}
+
+function renderUpload() {
+  const inbox = S.folders.inbox;
+  let list = S.uploads.map(u => {
+    const p = u.total ? (u.sent / u.total * 100) : 0;
+    const state = u.state === "done" ? `<span class="ok">完了 (会社のPCが自動で処理を始めます)</span>`
+      : u.state === "error" ? `<span class="err">失敗: ${esc(u.error)}</span>` : `${fmtSize(u.sent)} / ${fmtSize(u.total)}`;
+    return `<div style="margin-top:8px">${esc(u.name)} <small>${state}</small>${u.state === "done" ? "" : bar(p, true)}</div>`;
+  }).join("");
+
+  return `<div class="card"><h2>■ 動画をアップロード → ${esc(inbox ? inbox.name : "01")}</h2><div class="body">
+    <div class="drop" id="drop">ここに動画をドラッグ、または<br>
+      <button data-action="choose">ファイルを選ぶ</button>
+      <input id="file" type="file" accept="video/*,audio/*" multiple style="display:none"></div>
+    <small>アップロードが終わると、会社のPCが自動で見つけて文字起こしを始めます。ブラウザを閉じないでください。</small>
+    ${list}</div></div>`;
+}
+
+function render() {
+  const app = document.getElementById("app");
+  const who = document.getElementById("who");
+  const btnRoot = document.getElementById("btnRoot");
+  const btnLogout = document.getElementById("btnLogout");
+  document.getElementById("rootName").textContent = S.rootName ? "フォルダ: " + S.rootName : "";
+  who.textContent = S.email || "";
+  btnLogout.style.display = S.token ? "" : "none";
+  btnRoot.style.display = S.token && S.rootId ? "" : "none";
+
+  let html = S.error ? `<div class="msg err">${esc(S.error)}</div>` : "";
+
+  if (!S.clientId) {
+    app.innerHTML = html + renderSetup();
+    return;
+  }
+  if (!S.token) {
+    app.innerHTML = html + `<div class="card"><h2>■ ログイン</h2><div class="body">
+      <p>Googleアカウントでログインします(会社のPCと同じアカウント)。</p>
+      <button data-action="login">Googleでログイン</button>
+      <button data-action="setup" style="margin-left:8px">クライアントIDを変更</button></div></div>`;
+    return;
+  }
+  if (!S.rootId) {
+    app.innerHTML = html + `<div class="card"><h2>■ 監視するフォルダ</h2><div class="body">
+      <p>会社のアプリで選んだ、<b>01〜05 が入っているフォルダ</b>を指定します。</p>
+      <button data-action="pickroot">Driveから選ぶ</button>
+      <p class="dim">または、そのフォルダのURLを貼り付け:</p>
+      <input type="text" id="rootInput" placeholder="https://drive.google.com/drive/folders/...">
+      <p><button data-action="saveroot">このフォルダを使う</button></p></div></div>`;
+    return;
+  }
+
+  html += renderStatus(S.status);
+  html += `<div class="grid"><div>${renderUpload()}</div><div>${renderFolders()}</div></div>`;
+  app.innerHTML = html;
+  wireDrop();
+}
+
+function renderSetup() {
+  return `<div class="card"><h2>■ 最初の設定 (1回だけ)</h2><div class="body">
+    <p>このページを開いているアドレスを使ってGoogleにログインするため、<b>「ウェブアプリケーション」のOAuthクライアントID</b>が必要です。</p>
+    <ol>
+      <li><a href="https://console.cloud.google.com/apis/credentials" target="_blank" rel="noopener">Google Cloud の「認証情報」</a>を開く(会社のアプリと同じプロジェクトでOK)</li>
+      <li>「認証情報を作成」→「OAuth クライアント ID」→ 種類は<b>「ウェブ アプリケーション」</b></li>
+      <li>「承認済みの JavaScript 生成元」に <code>${esc(location.origin || "このページのアドレス")}</code> を追加</li>
+      <li>作成された<b>クライアントID</b>(…apps.googleusercontent.com)を下に貼り付け</li>
+    </ol>
+    <input type="text" id="clientInput" placeholder="xxxxxxxx.apps.googleusercontent.com" value="${esc(S.clientId)}">
+    <p><button data-action="saveclient">保存</button></p>
+    <small>クライアントIDはこのブラウザの中にだけ保存されます(このページのコードには入っていません)。</small></div></div>`;
+}
+
+// ---------------------------------------------------------------- フォルダ選択
+let picker = null;
+
+async function openPicker() {
+  picker = { stack: [{ id: "root", name: "マイドライブ" }], items: [], error: "" };
+  await loadPicker();
+}
+
+async function loadPicker() {
+  try {
+    picker.items = await listChildren(picker.stack[picker.stack.length - 1].id, true);
+    picker.error = "";
+  } catch (e) { picker.items = []; picker.error = e.message; }
+  renderPicker();
+}
+
+function renderPicker() {
+  const m = document.getElementById("modal");
+  if (!picker) { m.innerHTML = ""; return; }
+  const path = picker.stack.map(s => esc(s.name)).join(" / ");
+  const up = picker.stack.length > 1 ? `<tr><td><a href="#" data-action="pickup">↑ 上のフォルダへ</a></td></tr>` : "";
+  const rows = picker.items.map(f => `<tr><td><a href="#" data-action="pickopen" data-id="${esc(f.id)}" data-name="${esc(f.name)}">▸ ${esc(f.name)}</a></td></tr>`).join("");
+  m.innerHTML = `<div class="modal"><div class="box"><div class="card" style="margin:0;border:0"><h2>■ フォルダを選ぶ</h2><div class="body">
+    <div class="dim">場所: ${path}</div>
+    ${picker.error ? `<div class="err">${esc(picker.error)}</div>` : ""}
+    <div class="scroll" style="max-height:48vh"><table>${up}${rows || `<tr><td class="dim">フォルダがありません</td></tr>`}</table></div>
+    <p><button data-action="pickchoose">このフォルダを選ぶ</button> <button data-action="pickcancel">キャンセル</button></p>
+    </div></div></div></div>`;
+}
+
+// ---------------------------------------------------------------- アップロード(再開できる方式)
+function putChunk(session, blob, start, end, total, onProgress) {
+  return new Promise((resolve, reject) => {
+    const x = new XMLHttpRequest();
+    x.open("PUT", session);
+    x.setRequestHeader("Content-Range", blob.size === 0 ? `bytes */${total}` : `bytes ${start}-${end}/${total}`);
+    x.upload && (x.upload.onprogress = e => { if (e.lengthComputable && onProgress) onProgress(e.loaded); });
+    x.onload = () => resolve({ status: x.status, range: x.getResponseHeader("Range") });
+    x.onerror = () => reject(new Error("network"));
+    x.ontimeout = () => reject(new Error("timeout"));
+    x.send(blob);
+  });
+}
+
+// 308 のとき、サーバーが受け取り済みの位置(Range: bytes=0-N)を返す
+function nextOffset(range, fallback) {
+  const m = range && /bytes=0-(\d+)/.exec(range);
+  return m ? Number(m[1]) + 1 : fallback;
+}
+
+async function uploadFile(file, parentId, onProgress) {
+  const token = await getToken();
+  const init = await fetch(UPLOAD + "/files?" + qs({ uploadType: "resumable", supportsAllDrives: "true" }), {
+    method: "POST",
+    headers: {
+      Authorization: "Bearer " + token,
+      "Content-Type": "application/json; charset=UTF-8",
+      "X-Upload-Content-Type": file.type || "application/octet-stream",
+      "X-Upload-Content-Length": String(file.size),
+    },
+    body: JSON.stringify({ name: file.name, parents: [parentId] }),
+  });
+  if (!init.ok) throw new Error("アップロードを開始できません (" + init.status + ")");
+  const session = init.headers.get("Location");
+  if (!session) throw new Error("アップロード用のアドレスを受け取れませんでした");
+
+  const CHUNK = 8 * 1024 * 1024;          // 256KBの倍数
+  let offset = 0, failures = 0;
+
+  while (offset < file.size) {
+    const end = Math.min(offset + CHUNK, file.size);
+    try {
+      const base = offset;
+      const r = await putChunk(session, file.slice(offset, end), offset, end - 1, file.size,
+        loaded => onProgress && onProgress(base + loaded, file.size));
+      failures = 0;
+      if (r.status === 200 || r.status === 201) { onProgress && onProgress(file.size, file.size); return; }
+      if (r.status === 308) { offset = nextOffset(r.range, offset); onProgress && onProgress(offset, file.size); continue; }
+      throw new Error("status " + r.status);
+    } catch (e) {
+      // 途中で切れたら、どこまで届いているか聞いて、続きから送る
+      if (++failures > 5) throw new Error("通信が続けて失敗しました: " + e.message);
+      await new Promise(r => setTimeout(r, 1500 * failures));
+      try {
+        const q = await putChunk(session, new Blob([]), 0, 0, file.size);
+        if (q.status === 200 || q.status === 201) { onProgress && onProgress(file.size, file.size); return; }
+        if (q.status === 308) offset = nextOffset(q.range, 0);
+      } catch (_) { /* 次のループでもう一度 */ }
+    }
+  }
+}
+
+async function startUploads(files) {
+  const inbox = S.folders.inbox;
+  if (!inbox) { S.error = "01 の入力フォルダが見つかりません。会社のアプリで作成されているか確認してください"; render(); return; }
+  for (const file of files) {
+    const u = { name: file.name, sent: 0, total: file.size, state: "up", error: "" };
+    S.uploads.unshift(u);
+    render();
+    try {
+      await uploadFile(file, inbox.id, (sent, total) => { u.sent = sent; u.total = total; softRenderUploads(); });
+      u.state = "done";
+    } catch (e) {
+      u.state = "error"; u.error = e.message;
+    }
+    render();
+    refreshLists();
+  }
+}
+
+let uploadTimer = 0;
+function softRenderUploads() {
+  const now = Date.now();
+  if (now - uploadTimer < 400) return;
+  uploadTimer = now;
+  render();
+}
+
+function wireDrop() {
+  const drop = document.getElementById("drop");
+  const input = document.getElementById("file");
+  if (!drop || !input) return;
+  input.onchange = () => { startUploads(Array.from(input.files)); input.value = ""; };
+  drop.ondragover = e => { e.preventDefault(); drop.classList.add("over"); };
+  drop.ondragleave = () => drop.classList.remove("over");
+  drop.ondrop = e => { e.preventDefault(); drop.classList.remove("over"); startUploads(Array.from(e.dataTransfer.files)); };
+}
+
+// ---------------------------------------------------------------- ダウンロード / 表示
+async function fetchBlob(id) {
+  return (await api("/files/" + id, { alt: "media", supportsAllDrives: "true" })).blob();
+}
+
+async function downloadItem(id, name) {
+  const blob = await fetchBlob(id);
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = name;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 10000);
+}
+
+async function viewItem(id, name) {
+  const text = await (await api("/files/" + id, { alt: "media", supportsAllDrives: "true" })).text();
+  document.getElementById("modal").innerHTML = `<div class="modal"><div class="box"><div class="card" style="margin:0;border:0">
+    <h2>■ ${esc(name)}</h2><pre>${esc(text.slice(0, 200000))}</pre>
+    <div class="body"><button data-action="closemodal">閉じる</button></div></div></div></div>`;
+}
+
+// ---------------------------------------------------------------- 更新ループ
+let busy = { status: false, lists: false };
+
+async function refreshStatus() {
+  if (busy.status || !S.token || !S.rootId) return;
+  busy.status = true;
+  try { await loadStatus(); S.error = ""; } catch (e) { S.error = e.message; }
+  busy.status = false;
+  render();
+}
+
+async function refreshLists() {
+  if (busy.lists || !S.token || !S.rootId) return;
+  busy.lists = true;
+  try { await loadLists(); } catch (e) { S.error = e.message; }
+  busy.lists = false;
+  render();
+}
+
+function visible() { return typeof document === "undefined" || document.visibilityState !== "hidden"; }
+
+async function afterLogin() {
+  try {
+    const about = await (await api("/about", { fields: "user(emailAddress)" })).json();
+    S.email = (about.user && about.user.emailAddress) || "";
+  } catch (_) {}
+  render();
+  if (S.rootId) { await loadFolders().catch(e => { S.error = e.message; }); await refreshStatus(); await refreshLists(); }
+}
+
+// ---------------------------------------------------------------- 操作
+async function onAction(el) {
+  const a = el.dataset.action;
+  try {
+    if (a === "saveclient") {
+      const v = document.getElementById("clientInput").value.trim();
+      if (!/\.apps\.googleusercontent\.com$/.test(v)) { S.error = "クライアントIDの形式が違います (…apps.googleusercontent.com)"; return render(); }
+      S.clientId = v; S.error = ""; localStorage.setItem("tn_client_id", v); tokenClient = null; render();
+    } else if (a === "setup") {
+      S.clientId = ""; render();
+    } else if (a === "login") {
+      S.error = "";
+      await requestToken("consent");
+      await afterLogin();
+    } else if (a === "logout") {
+      if (S.token && haveGoogle()) google.accounts.oauth2.revoke(S.token, () => {});
+      S.token = ""; S.email = ""; S.status = null; localStorage.removeItem("tn_logged_in"); render();
+    } else if (a === "pickroot") {
+      await openPicker();
+    } else if (a === "pickup") {
+      picker.stack.pop(); await loadPicker();
+    } else if (a === "pickopen") {
+      picker.stack.push({ id: el.dataset.id, name: el.dataset.name }); await loadPicker();
+    } else if (a === "pickchoose") {
+      const cur = picker.stack[picker.stack.length - 1];
+      if (picker.stack.length < 2) { picker.error = "フォルダを開いてから選んでください"; return renderPicker(); }
+      setRoot(cur.id, cur.name);
+    } else if (a === "pickcancel") {
+      picker = null; renderPicker();
+    } else if (a === "saveroot") {
+      const id = parseFolderInput(document.getElementById("rootInput").value);
+      if (!id) { S.error = "フォルダのURLを読み取れませんでした"; return render(); }
+      setRoot(id, "(指定したフォルダ)");
+    } else if (a === "tab") {
+      S.tab = el.dataset.key; render();
+    } else if (a === "choose") {
+      document.getElementById("file").click();
+    } else if (a === "view") {
+      await viewItem(el.dataset.id, el.dataset.name);
+    } else if (a === "download") {
+      await downloadItem(el.dataset.id, el.dataset.name);
+    } else if (a === "closemodal") {
+      document.getElementById("modal").innerHTML = "";
+    }
+  } catch (e) {
+    S.error = e.message; render();
+  }
+}
+
+function setRoot(id, name) {
+  S.rootId = id; S.rootName = name; S.folders = {}; S.lists = {}; S.status = null; S.statusFileId = "";
+  localStorage.setItem("tn_root_id", id); localStorage.setItem("tn_root_name", name);
+  picker = null; renderPicker(); S.error = ""; render();
+  loadFolders().then(() => { render(); refreshStatus(); refreshLists(); }).catch(e => { S.error = e.message; render(); });
+}
+
+function boot() {
+  S.clientId = localStorage.getItem("tn_client_id") || "";
+  S.rootId = localStorage.getItem("tn_root_id") || "";
+  S.rootName = localStorage.getItem("tn_root_name") || "";
+
+  document.addEventListener("click", e => {
+    const el = e.target.closest && e.target.closest("[data-action]");
+    if (el) { e.preventDefault(); onAction(el); }
+  });
+
+  render();
+
+  // 前回ログインしていれば、確認なしで入り直す(ブロックされたらログインボタンを出す)
+  if (S.clientId && localStorage.getItem("tn_logged_in")) {
+    const tryAuto = () => {
+      if (!haveGoogle()) return setTimeout(tryAuto, 400);
+      requestToken("").then(afterLogin).catch(() => render());
+    };
+    tryAuto();
+  }
+
+  setInterval(() => { if (visible()) refreshStatus(); }, POLL_STATUS_MS);
+  setInterval(() => { if (visible()) refreshLists(); }, POLL_LISTS_MS);
+}
+
+// テスト用(通常は使われません)
+if (typeof window !== "undefined") {
+  window.__tn = { S, esc, fmtDur, fmtSize, fmtDate, parseFolderInput, pickFolders, renderStatus, renderFolders, renderUpload,
+                  uploadFile, nextOffset, loadStatus, listChildren, setToken: (t) => { S.token = t; S.tokenExp = Date.now() + 3600e3; } };
+}
+
+if (typeof document !== "undefined" && document.getElementById("app")) boot();
+</script>
+</body>
+</html>
